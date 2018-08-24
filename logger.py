@@ -81,7 +81,7 @@ def main():
                 logger.error("{}. His last words was (raw): {}".format(e, '' if msg=='' else msg))
                 msg = ''
             else:
-                # ser.write(char)  # Send symbol back to see what we typing (for PC debugging)
+                # ser.write(char)  # Send symbol back to see what we typing (for debugging)
 
                 # read byte timeout expired
                 if char == b'':

@@ -37,7 +37,7 @@ There are 5 levels of warning messages available. You can, of course, specify an
 
 `[PREFIX LETTER] [MESSAGE] \r`
 
-These prefix letters you should put at the start of your message and separate with a space from an actual payload. Always end your message with the CR `\r` symbol to notify the system about it. Output string will contain a type of the message, time & date and then actual payload:
+These prefix letters you should put at the start of your message and separate with a space from an actual payload. Output string will contain a type of the message, time & date and then actual payload:
 ```plain
 DEBUG    [2018-08-24 03:50:00,844] Debug message from UART received
 INFO     [2018-08-24 03:50:00,844] It's OK!
@@ -45,6 +45,15 @@ WARNING  [2018-08-24 03:50:00,845] Something happened
 ERROR    [2018-08-24 03:50:00,845] You really need to repair this
 CRITICAL [2018-08-24 03:50:00,845] PAN!C
 ```
+
+There are also 2 service messages:
+ - `is_present`: send this every `serial.Serial.timeout` seconds to notify the logger that your UART device is alive if there are no other messages to deliver. If it is not present for some time (see `no_ping_counter`) the logger will reboot itself. You, of course, can send any data over UART to reset the timeout but such message would not be recognized and be written to the USB drive with the `WARNING` prefix
+ - `end`: this message terminates the logger program in a normal way (LED is turning off)
+
+Always end every message with the CR `\r` symbol to notify the system about it.
+
+## Example UART device usage
+Find STM32 example of how to use this logger in your embedded app in `example` folder. Sample library is also available.
 
 ## Notes
 Due to the specific purpose of the app, `logging` module is used as the main feature and not as an accessory one. So for actual indication of any debug information to `stdout` `print()`s and `cprint()`s statements are used. So in production final version, you can remove them from the app entirely to optimize performance. Of course, another instance of `logging.Logger` class with easy activation/deactivation method can be applied for this task but this wasn't implemented yet.
