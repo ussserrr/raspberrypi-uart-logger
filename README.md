@@ -53,11 +53,13 @@ There are also 2 service messages:
 Always end every message with the CR `\r` symbol to notify the system about it.
 
 ## Example UART device usage
-Find STM32 example of how to use this logger in your embedded app in `example` folder. Sample library is also available.
+Find STM32-F0 example of how to use this logger in your embedded app in `example` folder. Sample library is also available.
 
 ## Notes
 Due to the specific purpose of the app, `logging` module is used as the main feature and not as an accessory one. So for actual indication of any debug information to `stdout` `print()`s and `cprint()`s statements are used. So in production final version, you can remove them from the app entirely to optimize performance. Of course, another instance of `logging.Logger` class with easy activation/deactivation method can be applied for this task but this wasn't implemented yet.
 
 The program also creates and manages `workdir/reboots_cnt_filename` file that stores a number of reboots.
+
+You can find the rough app scheme in `uml` folder (made with draw.io).
 
 See TODOs for more information about current weaknesses and what would be great to do.

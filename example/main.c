@@ -43,17 +43,15 @@
 #include "usart.h"
 #include "gpio.h"
 
-#include "logging.h"
-
 /* USER CODE BEGIN Includes */
-
+#include "logging.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-#define STR_SIZE 100
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,12 +63,13 @@ void SystemClock_Config(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+#define STR_SIZE 100
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   HAL_Delay(100);
   log_logging_shutdown();
 }
-
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
