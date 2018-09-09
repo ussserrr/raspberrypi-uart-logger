@@ -15,13 +15,13 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 class PostDevelopCommand(develop):
     """Post-installation for development mode."""
     def run(self):
-        # subprocess.run(['sudo', 'systemctl', 'enable', 'logger.service'])
+        subprocess.run(['sudo', 'systemctl', 'enable', 'logger.service'])
         develop.run(self)
 
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
-        # subprocess.run(['sudo', 'systemctl', 'enable', 'logger.service'])
+        subprocess.run(['sudo', 'systemctl', 'enable', 'logger.service'])
         install.run(self)
 
 
