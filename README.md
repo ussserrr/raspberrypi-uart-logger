@@ -7,9 +7,10 @@ The current version had been developed and tested only for UNIX systems (Raspber
 
 ## Dependencies and requirements
  - Python3 and its standard library
+ - Linux-based system
+ - `pyserial`
  - `termcolor` – for colorful printing of some useful debugging information to `stdout`
  - `RPi` – used in Raspberry Pi systems to control the indication LED
- - Linux-based system
  - Root permissions / administrative privileges
 
 ## Usage
