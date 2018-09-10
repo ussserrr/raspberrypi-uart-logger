@@ -5,10 +5,10 @@ Description=UART to USB logger service
 [Service]
 Type=idle
 #WorkingDirectory=/home/pi
-ExecStart=/bin/bash /home/pi/Documents/startup_script.sh
+ExecStart=/bin/bash /opt/raspberrypi-uart-logger/startup_script.sh
 #StandardInput=inherit
 #StandardOutput=inherit
-User=pi
+#User=pi
 
 [Install]
 WantedBy=multi-user.target

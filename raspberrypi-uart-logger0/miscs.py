@@ -4,7 +4,7 @@ all other modules but not vice versa.
 """
 
 import os, sys, time, serial, logging, subprocess
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 from getpass import getuser
 
 
@@ -17,9 +17,9 @@ logger = logging.getLogger('')
 
 # Serial object is also global
 ser = serial.Serial()
-# ser.port = '/dev/ttyAMA0'
-# ser.baudrate = 115200
-# ser.timeout = 60  # 1 min
+ser.port = '/dev/ttyAMA0'
+ser.baudrate = 115200
+ser.timeout = 60  # 1 min
 
 # Drive descrption
 possible_drives = ['sd{}1'.format(letter) for letter in 'abcdefghijklmnopqrstuvwxyz']
@@ -50,7 +50,7 @@ def program_exit():
     print('program exit')
     logging.shutdown()
     ser.close()
-    # GPIO.output(LED_GPIO, False)
+    GPIO.output(LED_GPIO, False)
 
 
 
