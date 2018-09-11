@@ -1,3 +1,6 @@
+TODO: write about /dev/tty device and correct raspi-config settings
+TODO: only one drive can be attached at a time (and other rules)
+
 # Raspberry Pi serial UART logger
 
 ## Overview
