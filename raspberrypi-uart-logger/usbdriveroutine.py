@@ -61,12 +61,11 @@ def unmount_drive(drive):
 
 def mount_drive(drive, drive_mountpoint, drive_name):
     cprint('MOUNT THE DRIVE', 'red')
-    # Re-make a directory for drive mount
-    # try:
-    #     shutil.rmtree(str(os.path.join(drive_mountpoint, drive_name)))
-    # except:
-    #     pass
-    # os.mkdir(os.path.join(drive_mountpoint, drive_name))
+    # Make a directory for a drive to mount
+    try:
+        os.mkdir(os.path.join(drive_mountpoint, drive_name))
+    except:
+        pass
     rslt = subprocess.run([
             'sudo', 'mount', '-t', 'vfat', '-ouser,umask=0000',
             drive, '{}/{}'.format(drive_mountpoint, drive_name)
@@ -90,13 +89,10 @@ def check_drive(possible_drives, drive_mountpoint, drive_name, log_filename):
 
     mount_tries_cnt = mount_tries
     while True:
-        time.sleep(check_drive_retry_time)
-
-        # TODO: check!
         if mount_tries_cnt == 0:
             return NEED_FORMAT,drive
+        time.sleep(check_drive_retry_time)
 
-##### NEW 2
         lsblk = subprocess.run(['lsblk', '-o', 'name,mountpoint', '-n', '-l'],
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if lsblk.returncode == 0:
@@ -143,98 +139,10 @@ def check_drive(possible_drives, drive_mountpoint, drive_name, log_filename):
             print('The drive is not {}, format...'.format(drive_name))
             return NEED_FORMAT,drive
 
-##### END NEW 2
-
-
-##### NEW
-        # drives_in_system = psutil.disk_partitions()
-        #
-        # # Search for one of sdX1
-        # for drive_to_find in possible_drives:
-        #     try:
-        #         drive = drives_in_system[[d.device for d in drives_in_system]
-        #                                  .index(drive_to_find)]
-        #         break
-        #     except ValueError:
-        #         drive = ''
-        # if drive == '':
-        #     print('No plugged drives')
-        #     return CRITICAL_ERROR,''
-        # else:
-        #     print('{} is plugged'.format(drive.device))
-        #
-        # # Define whether sdX1 is mounted or not (and in correct way or not)
-        # # Correct
-        # if drive.mountpoint == (drive_mountpoint+'/'+drive_name):
-        #     print("{} is {}".format(drive.device, drive_name))
-        #     drive = drive.device
-        #     break
-        # # drive is not mounted
-        # elif drive.mountpoint == '':
-        #     print('{} is not mounted'.format(drive.device))
-        #     mount_drive(drive.device, drive_mountpoint, drive_name)
-        #     mount_tries_cnt -= 1
-        #     continue
-        # # drive is 'nameN'
-        # elif (drive_mountpoint+'/'+drive_name) in drive.mountpoint:
-        #     print("{} is mounted as {}".format(drive.device, drive.mountpoint))
-        #     unmount_drive(drive.device)
-        #     mount_drive(drive.device, drive_mountpoint, drive_name)
-        #     mount_tries_cnt -= 1
-        #     continue
-        # # Some new drive inserted
-        # else:
-        #     print("{} is mounted as {}".format(drive.device, drive.mountpoint))
-        #     return NEED_FORMAT,drive
-##### END NEW
-
-        # lsblk_rslt = subprocess.run(['lsblk', '-l'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # if lsblk_rslt.returncode == 0:
-        #     print("'lsblk' success")
-        #     lsblk_output = lsblk_rslt.stdout.decode('utf-8')
-        # else:
-        #     print(lsblk_rslt.stderr.decode('utf-8'))
-        #     return CRITICAL_ERROR,''
-        #
-        # # Search for one of sdX1
-        # drives_cnt = 0
-        # for drv in possible_drives:
-        #     if drv in lsblk_output:
-        #         drives_cnt += 1
-        #         drive = '/dev/{}'.format(drv)
-        #         print('{} is plugged'.format(drive))
-        # if drives_cnt == 0:
-        #     print('no plugged drives')
-        #     return CRITICAL_ERROR,''
-        #
-        # # Define whether sdX1 is mounted or not
-        # if drive_mountpoint in lsblk_output:
-        #     print('{} is mounted'.format(drive))
-        # else:
-        #     print('drive {} is not mounted'.format(drive))
-        #     mount_drive(drive, drive_mountpoint, drive_name)
-        #     mount_tries_cnt -= 1
-        #     continue
-        #
-        # # Whether mounted drive is LOGS drive or not
-        # if drive_name in lsblk_output:
-        #     # If LOGSn then remount drive
-        #     if lsblk_output[lsblk_output.find(drive_name)+len(drive_name)] in [str(x) for x in range(10)]:
-        #         print('drive is {}n'.format(drive_name))
-        #         unmount_drive(drive)
-        #         mount_drive(drive, drive_mountpoint, drive_name)
-        #         mount_tries_cnt -= 1
-        #         continue
-        #     else:
-        #         print('{} drive is mounted'.format(drive_name))
-        #         break
-        # else:
-        #     print('drive is not {}'.format(drive_name))
-        #     return NEED_FORMAT,drive
-
 
     # Look for an already existed logfile on the drive
-    if os.path.exists('{}/{}/{}'.format(drive_mountpoint, drive_name, log_filename)):
+    if os.path.exists('{}/{}/{}'
+                      .format(drive_mountpoint, drive_name, log_filename)):
         print('{} is here'.format(log_filename))
     else:
         print('No log file, format...')
@@ -288,8 +196,12 @@ def replace_drive(possible_drives):
         for drv in possible_drives:
             if os.path.exists('/dev/{}'.format(drv)):
                 drive = '/dev/{}'.format(drv)
-                print("We've waited for a new drive {} for approximately {} seconds"
-                      .format(drive, wait_for_drive_time + wait_for_drive_cnt * wait_for_drive_time))
+                print(
+                    "We've waited for a new drive {} for approximately {} seconds"
+                    .format(
+                        drive,
+                        wait_for_drive_time + wait_for_drive_cnt * wait_for_drive_time
+                    ))
                 time.sleep(wait_for_drive_time)
                 return STATUS_OK
         print('Drive was not found yet')

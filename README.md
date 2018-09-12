@@ -66,7 +66,11 @@ There are also 2 service messages:
 Always end every message with the CR `\r` symbol to notify the system about it.
 
 ## USB drive replacement
-Assume the system is working in normal mode and some man unplug the flash drive. During the closest logging event the app will detect that no drive is present (that why the custom `logging.FileHandler` class is used for) and will go in the search mode to wait for a new drive. After successful detection the Raspberry will reboot itself and the program starts over. Such approach is a little bit clumsy but in the same time simpler. You can implement a non-reboot mode as well to improve the logger. Please avoid situations when more than one drive is plugged to the Raspberry simultaneously as it leads to an undefined behavior.
+Assume the system is working in normal mode and some man unplug the flash drive. During the closest logging event the app will detect that no drive is present (that why the custom `logging.FileHandler` class is used for) and will go in the search mode to wait for a new drive. After successful detection the Raspberry will reboot itself and the program starts over. Such approach is a little bit clumsy but in the same time simpler. You can implement a non-reboot mode as well to improve the logger.
+
+Please avoid situations when more than one drive is plugged to the Raspberry simultaneously as it leads to an undefined behavior.
+
+Raspbian by default is set to auto-mount some drives and create `DRIVE_NAMEn` mountpoints (`n` is a number) in case their names are equal. Also, different drives in system are represented by `/dev/sdX1` devices (`X` is a letter). Based on all of the above, we should be prepared for any of these occasions in any combinations even if they will not happened ever. So some code blocks may have additional safety wrappers and checks.
 
 ## Example UART device usage
 Find STM32-F0 example (in C) of how to use this logger in your embedded app in `client-usage-example` folder. Sample library is also available.

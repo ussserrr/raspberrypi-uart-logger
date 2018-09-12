@@ -47,6 +47,10 @@ wait_for_drive_time = 5  # seconds
 activation_tries = 3
 activation_tries_time = 10  # seconds
 
+#
+num_of_continuous_reboots = 3
+delay_after_continuous_reboots = 60  # minutes
+
 
 workdir = '/opt/raspberrypi-uart-logger'
 reboots_cnt_filename = '{}/reboots_cnt.txt'.format(workdir)
@@ -109,10 +113,11 @@ def sudo_reboot():
             with open(reboots_cnt_filename, 'w') as reboots_cnt_file:
                 reboots_cnt_file.write(str(reboots_cnt)+'\n')
 
-            if reboots_cnt > 3:
+            if reboots_cnt > num_of_continuous_reboots:
                 program_exit()
-                subprocess.run(['sudo', 'shutdown', '-r', '+{}'.format(60)])  # 60 - 1h
-                print('reboot has been sheduled')
+                subprocess.run(['sudo', 'shutdown', '-r', '+{}'
+                    .format(delay_after_continuous_reboots)])  # 60 - 1h
+                print('Reboot has been sheduled')
                 sys.exit()
 
         # Else create the file and write '1' to it:
