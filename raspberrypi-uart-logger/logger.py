@@ -9,6 +9,7 @@ Main program module.
 import sys, time, signal, serial, logging, subprocess
 import RPi.GPIO as GPIO
 from functools import partial
+
 from miscs import *
 from usbdriveroutine import *
 
@@ -83,7 +84,7 @@ def main():
     no_ping_counter = 0
     reset_reboots_cnt_flag = False
 
-    # Read messages forever
+    # Read messages forever in a loop
     while True:
 
         # Read bytes from USART till we get whole message

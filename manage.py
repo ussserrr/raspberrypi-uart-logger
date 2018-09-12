@@ -47,7 +47,7 @@ subparsers = parser.add_subparsers(dest='subcommand', title='subcommands',
 
 parser_install = subparsers.add_parser('install',
     help="Install dependencies, copy necessary files, register in the system. "
-         "After installtion the program will be located in "
+         "After installation the program will be located in "
          "'/opt/raspberrypi-uart-logger' directory. Current installation will be "
          "overridden. Reboot is needed to take effects.")
 parser_generate = subparsers.add_parser('uninstall',
@@ -81,7 +81,9 @@ else:
         print("Enable /dev/ttyAMA0 for incoming UART connections...")
         # no console on /dev/ttyAMA0, but keep UART functionality
         subprocess.run(['sudo', 'raspi-config', 'nonint', 'do_serial', '2'])
-        # detach BT from /dev/ttyAMA0. Firstly, reset settings
+        # detach BT from /dev/ttyAMA0. Firstly, reset settings (allows to avoid
+        # lines duplication if installation/deinstallation order was somehow
+        # messed up)
         replace_line('/boot/config.txt', 'dtoverlay=pi3-miniuart-bt\n', '')
         replace_line('/boot/config.txt', 'dtoverlay=pi3-disable-bt\n', '')
         with open('/boot/config.txt', 'a') as config_txt:

@@ -3,7 +3,7 @@ Module with general global objects and support functions. It needs to be
 imported by all other modules but not vice versa.
 """
 
-import os, sys, time, serial, logging, subprocess
+import os, sys, serial, logging, subprocess
 import RPi.GPIO as GPIO
 
 
@@ -35,12 +35,15 @@ drive_mountpoint = '/mnt'
 drive_name = 'LOGS'  # we detect (and format) drives with such name
 log_filename = 'uartlog.txt'
 
+# Used in check_drive() function to provide several tries to initialize the drive
 mount_tries = 3
 check_drive_retry_time = 5  # seconds
 
+# Used in replace_drive() function
 wait_for_drive_tries = 60
 wait_for_drive_time = 5  # seconds
 
+# Wrap around check_drive() function adds additional tries
 activation_tries = 3
 activation_tries_time = 10  # seconds
 

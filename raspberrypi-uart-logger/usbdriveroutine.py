@@ -233,7 +233,7 @@ def check_drive(possible_drives, drive_mountpoint, drive_name, log_filename):
         #     return NEED_FORMAT,drive
 
 
-    # Look for already existed logfile on the drive
+    # Look for an already existed logfile on the drive
     if os.path.exists('{}/{}/{}'.format(drive_mountpoint, drive_name, log_filename)):
         print('{} is here'.format(log_filename))
     else:

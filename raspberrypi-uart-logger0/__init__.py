@@ -1,1 +1,0 @@
-name = "raspberrypi-uart-logger"
