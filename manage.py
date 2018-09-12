@@ -20,7 +20,9 @@ def check_files(path, given_files):
     if os.path.exists(path):
         current_files = os.listdir(path)
         files_intersection = list(set(current_files) & set(given_files))
-        if files_intersection == given_files.sort():
+        files_intersection.sort()
+        given_files.sort()
+        if files_intersection == given_files:
             return True
     return False
 
@@ -50,7 +52,7 @@ parser_install = subparsers.add_parser('install',
          "overridden. Reboot is needed to take effects.")
 parser_generate = subparsers.add_parser('uninstall',
     help="Remove all files, registrations. Note that all dependencies will still "
-         "be there and some system configs were not reverted back")
+         "be there and some system configs will not be revert back")
 
 args = parser.parse_args()
 
@@ -79,10 +81,12 @@ else:
         print("Enable /dev/ttyAMA0 for incoming UART connections...")
         # no console on /dev/ttyAMA0, but keep UART functionality
         subprocess.run(['sudo', 'raspi-config', 'nonint', 'do_serial', '2'])
-        # detach BT from /dev/ttyAMA0
+        # detach BT from /dev/ttyAMA0. Firstly, reset settings
+        replace_line('/boot/config.txt', 'dtoverlay=pi3-miniuart-bt\n', '')
+        replace_line('/boot/config.txt', 'dtoverlay=pi3-disable-bt\n', '')
         with open('/boot/config.txt', 'a') as config_txt:
-            config_txt.write("dtoverlay=pi3-miniuart-bt")
-            config_txt.write("dtoverlay=pi3-disable-bt")
+            config_txt.write("dtoverlay=pi3-miniuart-bt\n")
+            config_txt.write("dtoverlay=pi3-disable-bt\n")
 
         # install dependencies (bypassing pip)
         print("Install dependencies...")
@@ -143,8 +147,8 @@ else:
 
         subprocess.run(['sudo', 'systemctl', 'daemon-reload'])
 
-        replace_line('/boot/config.txt', 'dtoverlay=pi3-miniuart-bt', '')
-        replace_line('/boot/config.txt', 'dtoverlay=pi3-disable-bt', '')
+        replace_line('/boot/config.txt', 'dtoverlay=pi3-miniuart-bt\n', '')
+        replace_line('/boot/config.txt', 'dtoverlay=pi3-disable-bt\n', '')
 
-        print("Uninstallation completed. Note that all dependencies are still "
-              "there and some system configs were not reverted back")
+        print("\nUninstallation completed. Note that all dependencies are still "
+              "there and some system configs were have not been reverted back")
