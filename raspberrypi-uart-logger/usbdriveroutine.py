@@ -243,7 +243,8 @@ def check_drive(possible_drives, drive_mountpoint, drive_name, log_filename):
     # First check for a logfile corruption (trying to get file properties)
     stat_info = 0
     try:
-        stat_info = os.stat('{}/{}/{}'.format(drive_mountpoint, drive_name, log_filename))
+        stat_info = os.stat('{}/{}/{}'
+                            .format(drive_mountpoint, drive_name, log_filename))
     except Exception as e:
         print(e, ', format...')
         return NEED_FORMAT,drive
@@ -260,7 +261,8 @@ def check_drive(possible_drives, drive_mountpoint, drive_name, log_filename):
 
     # Second check for logfile corruption (trying to open the file for writing)
     try:
-        log = open('{}/{}/{}'.format(drive_mountpoint, drive_name, log_filename), 'r+')
+        log = open('{}/{}/{}'
+                   .format(drive_mountpoint, drive_name, log_filename), 'r+')
         log.close()
     except Exception as e:
         print(e, ', format...')
