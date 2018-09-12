@@ -1,7 +1,7 @@
 # Version for lxterminal (i.e. when we use DE on our Pi)
-# lxterminal --geometry=225x60 --command='/usr/bin/python3 /home/pi/Documents/logger.py'
+# lxterminal --geometry=225x60 --command='sudo /usr/bin/python3 /opt/raspberrypi-uart-logger/logger.py'
 
-/usr/bin/python3 /home/pi/Documents/logger.py
+sudo /usr/bin/python3 /opt/raspberrypi-uart-logger/logger.py
 result=$?
 
 # LED OFF
