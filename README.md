@@ -19,7 +19,7 @@ The Logger uses primary, full-functional `/dev/ttyAMA0` UART module so make sure
 Solid electrical contact for both GND and RX is an important thing because otherwise there are real risk of bad data transmissions (some sort of garbage non-UTF8 symbols, etc.).
 
 ## Usage
-  0. `sudo apt update && sudo apt upgrade && sudo apt install git`
+  0. `$ sudo apt update && sudo apt upgrade && sudo apt install git`
   1. Clone the repo (you will also be needed in Internet connection during installation to satisfy dependencies)
   2. Edit settings in `manage.py`, `raspberrypi-uart-logger/miscs.py` according to your system:
     - UART parameters
@@ -29,10 +29,10 @@ Solid electrical contact for both GND and RX is an important thing because other
     - working (installation) directory
     - optional LED, that indicates Logger ON/OFF status - if it doesn't light then logger app is shutdown'ed. So you can judge about the status of the system by briefly taking the look on the LED.
   3. Run
-    ```sh
-    cd raspberrypi-uart-logger/
-    sudo python3 manage.py install
-    ```
+     ```bash
+     $ cd raspberrypi-uart-logger/
+     $ sudo python3 manage.py install
+     ```
   4. You doesn't really have to prepare your USB drives because the app is able to remount/format improper drives (so do not store any important documents on drives intended for usage)
   5. Reboot the system. It will apply new preferences and also start the logger.
 
