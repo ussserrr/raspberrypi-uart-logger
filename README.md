@@ -66,7 +66,7 @@ There are also 2 service messages:
 Always end every message with the CR `\r` symbol to notify the system about it.
 
 ## USB drive replacement
-Assume the system is working in normal mode and some man unplug the flash drive. During the closest logging event the app will detect that no drive is present (that why the custom `logging.FileHandler` class is used for) and will go in the search mode to wait for a new drive. After successful detection the Raspberry will reboot itself and the program starts over. Such approach is a little bit clumsy but in the same time simpler. You can implement a non-reboot mode as well to improve the logger.
+Assume the system is working in normal mode and some man unplug the flash drive. During the closest logging event the app will detect that no drive is present (that why the custom `logging.FileHandler` class is used for) and will go in the search mode to wait for a new drive. After successful detection the Raspberry will reboot itself and the program starts over. Such approach is a little bit clumsy but in the same time simpler. You can implement a non-reboot mode as well to improve the logger. Also, some sort of periodical checks can be performed to detect disconnections earlier.
 
 Please avoid situations when more than one drive is plugged to the Raspberry simultaneously as it leads to an undefined behavior.
 

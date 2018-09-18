@@ -1,5 +1,5 @@
 # TODO: in production: remove all print and cprint statements
-# TODO: respond on errors of subprocess.run()
+# TODO: respond on errors of subprocess.run() (use subprocess.run(..., check=True))
 # TODO: USB drive overflow/fat32 maximal file size (4 Gb) exceed
 
 """
