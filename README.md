@@ -22,6 +22,7 @@ Solid electrical contact for both GND and RX is an important thing because other
   0. `$ sudo apt update && sudo apt upgrade && sudo apt install git`
   1. Clone the repo (you will also be needed in Internet connection during installation to satisfy dependencies)
   2. Edit settings in `manage.py`, `raspberrypi-uart-logger/miscs.py` according to your system:
+  
     - UART parameters
     - log string format
     - timeouts (some default values are relatively small for debug purposes)
