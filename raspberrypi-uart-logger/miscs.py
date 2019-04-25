@@ -52,6 +52,8 @@ num_of_continuous_reboots = 3
 delay_after_continuous_reboots = 60  # minutes
 
 
+time_sync_tries = 3
+time_sync_retry_time = 5  # seconds
 ntp_servers = [ 'ru.pool.ntp.org',
                 '0.ubuntu.pool.ntp.org' ]
 
@@ -155,15 +157,21 @@ def sync_system_time():
     """
     Try to synchronize a system clock with NTP servers (using ntpdate utility)
     """
-    for server in ntp_servers:
-        rslt = subprocess.run(['sudo', 'ntpdate', server], stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-        if rslt.returncode == 0:
-            print("System clock has been synchronized with {} server"
-                  .format(server))
-            logger.info("System clock has been synchronized with {} server"
-                        .format(server))
-            return
+
+    time_sync_tries_cnt = time_sync_tries
+    while time_sync_tries_cnt > 0:
+        for server in ntp_servers:
+            rslt = subprocess.run(['sudo', 'ntpdate', server],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if rslt.returncode == 0:
+                print("System clock has been synchronized with {} server"
+                      .format(server))
+                logger.info("System clock has been synchronized with {} server"
+                            .format(server))
+                return
+            else:
+                time_sync_tries_cnt -= 1
+                time.sleep(time_sync_retry_time)
 
     print("Cannot sync the system clock")
     logger.warning("Cannot sync the system clock")
