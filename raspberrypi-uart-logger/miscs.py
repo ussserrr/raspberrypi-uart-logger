@@ -52,6 +52,10 @@ num_of_continuous_reboots = 3
 delay_after_continuous_reboots = 60  # minutes
 
 
+ntp_servers = [ 'ru.pool.ntp.org',
+                '0.ubuntu.pool.ntp.org' ]
+
+
 workdir = '/opt/raspberrypi-uart-logger'
 reboots_cnt_filename = '{}/reboots_cnt.txt'.format(workdir)
 
@@ -144,3 +148,22 @@ def reset_reboots_cnt():
         os.remove(reboots_cnt_filename)
     except:
         pass
+
+
+
+def sync_system_time():
+    """
+    Try to synchronize a system clock with NTP servers (using ntpdate utility)
+    """
+    for server in ntp_servers:
+        rslt = subprocess.run(['sudo', 'ntpdate', server], stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+        if rslt.returncode == 0:
+            print("System clock has been synchronized with {} server"
+                  .format(server))
+            logger.info("System clock has been synchronized with {} server"
+                        .format(server))
+            return
+
+    print("Cannot sync the system clock")
+    logger.warning("Cannot sync the system clock")

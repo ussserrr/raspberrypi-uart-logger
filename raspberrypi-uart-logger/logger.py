@@ -77,6 +77,8 @@ def main():
     if activate_drive_and_logger_status == CRITICAL_ERROR:
         sudo_reboot()
 
+    sync_system_time()
+
     usart_connect_status, usart_reconnect_counter = usart_connect(logger, ser)
     if usart_connect_status == CRITICAL_ERROR:
         sudo_reboot()

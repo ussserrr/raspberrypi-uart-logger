@@ -13,7 +13,8 @@ installation_files = [ 'logger.py',
                        'usbdriveroutine.py' ]
 dependencies = [ 'python3-termcolor',
                  'python3-serial',
-                 'python3-rpi.gpio' ]
+                 'python3-rpi.gpio',
+                 'ntpdate' ]
 
 
 def check_files(path, given_files):
