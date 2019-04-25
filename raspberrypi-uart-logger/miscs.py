@@ -3,7 +3,7 @@ Module with general global objects and support functions. It needs to be
 imported by all other modules but not vice versa.
 """
 
-import os, sys, serial, logging, subprocess
+import os, sys, serial, logging, subprocess, time
 import RPi.GPIO as GPIO
 
 
@@ -169,9 +169,10 @@ def sync_system_time():
                 logger.info("System clock has been synchronized with {} server"
                             .format(server))
                 return
-            else:
-                time_sync_tries_cnt -= 1
-                time.sleep(time_sync_retry_time)
+        time_sync_tries_cnt -= 1
+        print("Cannot sync the system clock, retry after {} seconds..."
+              .format(time_sync_retry_time))
+        time.sleep(time_sync_retry_time)
 
     print("Cannot sync the system clock")
     logger.warning("Cannot sync the system clock")
