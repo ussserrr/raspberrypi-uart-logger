@@ -201,28 +201,36 @@ def main():
                     print('Reboots counter was cleared')
 
             elif msg.startswith('time sync'):
-                time = ...
-                rslt = subprocess.run(['sudo', 'date', '-s',
-                    '"$(date \%Y-\%m-\%d) {hour}:{minute}:{second}"'
-                    .format(hour=, minute=, second=)])
-                if rslt.returncode == 0:
-                    print("Time was set from UART")
-                    logger.info("Time was set from UART")
+                # Sync from UART only if we didn't it during the start-up process
+                if time_sync_status != STATUS_OK:
+                    time = ...
+                    rslt = subprocess.run('sudo date -s "$(date +%Y-%m-%d) {hour}:{minute}:{second}"'
+                                          .format(hour=, minute=, second=), shell=True)
+                    if rslt.returncode == 0:
+                        print("Time was set from UART")
+                        logger.info("Time was set from UART")
+                    else:
+                        print("Error occured when setting time from UART")
+                        logger.error("Error occured when setting time from UART")
                 else:
-                    print("Error occured when setting time from UART")
-                    logger.error("Error occured when setting time from UART")
+                    print("Ignore time from UART")
+                    logger.info("Ignore time from UART")
 
             elif msg.startswith('date sync'):
-                date = ...
-                rslt = subprocess.run(['sudo', 'date', '-s',
-                    '"{year}-{month}-{day} $(date +\%H:\%M:\%S)"'
-                    .format(year=, month=, day=)])
-                if rslt.returncode == 0:
-                    print("Date was set from UART")
-                    logger.info("Date was set from UART")
+                # Sync from UART only if we didn't it during the start-up process
+                if time_sync_status != STATUS_OK:
+                    date = ...
+                    rslt = subprocess.run('sudo date -s "{year}-{month}-{day} $(date +%H:%M:%S)"'
+                                          .format(year=, month=, day=), shell=True)
+                    if rslt.returncode == 0:
+                        print("Date was set from UART")
+                        logger.info("Date was set from UART")
+                    else:
+                        print("Error occured when setting date from UART")
+                        logger.error("Error occured when setting date from UART")
                 else:
-                    print("Error occured when setting date from UART")
-                    logger.error("Error occured when setting date from UART")
+                    print("Ignore time from UART")
+                    logger.info("Ignore date from UART")
 
             elif msg == 'end':
                 logger.info("Program terminated by the target")
@@ -239,8 +247,8 @@ def main():
 
 
 """
-This construction allows to have separate program environments and runs them
-independentely. For example, we can write test() which deliver similar but
+This construction allows to have separate program configurations and runs them
+independentely. For example, we can write test() which has similar environment but
 different functionality compared to main(), and run it instead of main().
 """
 if __name__ == '__main__':
