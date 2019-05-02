@@ -9,7 +9,7 @@ service_name = 'logger.service'
 mountpoint = '/mnt/LOGS'
 installation_files = [ '__init__.py',
                        'logger.py',
-                       'miscs.py',
+                       'util.py',
                        'bcd.py',
                        'startup_script.sh',
                        'usbdriveroutine.py' ]

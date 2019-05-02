@@ -1,6 +1,6 @@
 """
-Module with general global objects and support functions. It needs to be
-imported by all other modules but not vice versa.
+Module with general global objects and support functions. It needs to be imported by all other modules but not vice
+versa.
 """
 
 import os, sys, serial, logging, subprocess, time
@@ -28,8 +28,7 @@ too_long_message_sleep = 1800  # seconds
 
 
 # Drive descrption
-possible_drives = ['sd{}1'.format(letter) for letter in
-                   'abcdefghijklmnopqrstuvwxyz']
+possible_drives = ['sd{}1'.format(letter) for letter in 'abcdefghijklmnopqrstuvwxyz']
 drive = '?'  # initial name
 drive_mountpoint = '/mnt'
 drive_name = 'LOGS'  # we detect (and format) drives with such name
@@ -62,6 +61,7 @@ workdir = '/opt/raspberrypi-uart-logger'
 reboots_cnt_filename = '{}/reboots_cnt.txt'.format(workdir)
 
 
+# TODO: change to enum or smth. Add more statuses
 # Return codes of functions
 CRITICAL_ERROR = 2
 NEED_FORMAT = 1
@@ -76,6 +76,12 @@ log_formatter_string = '%(levelname)-8s [%(asctime)s] %(message)s'
 formatter = logging.Formatter(log_formatter_string)
 logging.basicConfig(format=log_formatter_string, level=logging.DEBUG)
 logger = logging.getLogger('')
+
+# TODO: add this to log both on drive and terminal (not tested on Raspberry yet)
+# logging_terminal_handler = logging.StreamHandler()
+# logging_terminal_handler.setLevel(logging.DEBUG)
+# logging_terminal_handler.setFormatter(formatter)
+# logger.addHandler(logging_terminal_handler)
 
 
 
@@ -102,9 +108,8 @@ def ctrlc_handler(signal, frame):
 
 def sudo_reboot():
     """
-    Single waypoint to reboot Linux. Before actually reboot, it checks reboots
-    counter in a special file and decides when to restart a system: now or at a
-    shedule instead. It allows to avoid continuous reboots when some serious
+    Single waypoint to reboot Linux. Before actually reboot, it checks reboots counter in a special file and decides
+    when to restart a system: now or at a shedule instead. It allows to avoid continuous reboots when some serious
     error had occured.
     """
     try:
@@ -121,8 +126,7 @@ def sudo_reboot():
 
             if reboots_cnt > num_of_continuous_reboots:
                 program_exit()
-                subprocess.run(['sudo', 'shutdown', '-r', '+{}'
-                    .format(delay_after_continuous_reboots)])  # 60 - 1h
+                subprocess.run(['sudo', 'shutdown', '-r', '+{}'.format(delay_after_continuous_reboots)])  # 60 - 1h
                 print('Reboot has been sheduled')
                 sys.exit()
 
@@ -161,19 +165,65 @@ def sync_system_time():
     time_sync_tries_cnt = time_sync_tries
     while time_sync_tries_cnt > 0:
         for server in ntp_servers:
-            rslt = subprocess.run(['sudo', 'ntpdate', server],
-                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            rslt = subprocess.run(['sudo', 'ntpdate', server], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if rslt.returncode == 0:
-                print("System clock has been synchronized with {} server"
-                      .format(server))
-                logger.info("System clock has been synchronized with {} server"
-                            .format(server))
+                print("System clock has been synchronized with {} server".format(server))
+                logger.info("System clock has been synchronized with {} server".format(server))
                 return STATUS_OK
         time_sync_tries_cnt -= 1
-        print("Cannot sync the system clock, retry after {} seconds..."
-              .format(time_sync_retry_time))
+        print("Cannot sync the system clock, retry after {} seconds...".format(time_sync_retry_time))
         time.sleep(time_sync_retry_time)
 
     print("Cannot sync the system clock")
     logger.warning("Cannot sync the system clock")
     return not STATUS_OK
+
+
+def set_time_from_msg(msg):
+    status = not STATUS_OK
+    try:
+        # such as 12:34:56
+        t = {
+            'hour': int(msg[len('time sync')+1 : len('time sync')+3]),
+            'minute': int(msg[len('time sync')+5 : len('time sync')+7]),
+            'second': int(msg[len('time sync')+9 : len('time sync')+11])
+        }
+        rslt = subprocess.run('sudo date -s "$(date +%Y-%m-%d) {hour}:{minute}:{second}"'
+                              .format(hour=t['hour'], minute=t['minute'], second=t['second']), shell=True)
+        if rslt.returncode == 0:
+            print("Time was set from UART")
+            logger.info("Time was set from UART")
+            status = STATUS_OK
+        else:
+            print("Error occured when setting time from UART")
+            logger.error("Error occured when setting time from UART")
+    except Exception as e:
+        print('Incorrect time from UART: {}'.format(e))
+        logger.warning('Incorrect time from UART: {}'.format(e))
+
+    return status
+
+
+def set_date_from_msg(msg):
+    status = not STATUS_OK
+    try:
+        # such as 2019-12-25
+        d = {
+            'year': int(msg[len('date sync')+1 : len('date sync')+5]),
+            'month': int(msg[len('date sync')+7 : len('date sync')+9]),
+            'day': int(msg[len('date sync')+11 : len('date sync')+13])
+        }
+        rslt = subprocess.run('sudo date -s "{year}-{month}-{day} $(date +%H:%M:%S)"'
+                              .format(year=d['year'], month=d['month'], day=d['day']), shell=True)
+        if rslt.returncode == 0:
+            print("Date was set from UART")
+            logger.info("Date was set from UART")
+            status = STATUS_OK
+        else:
+            print("Error occured when setting date from UART")
+            logger.error("Error occured when setting date from UART")
+    except Exception as e:
+        print('Incorrect date from UART: {}'.format(e))
+        logger.warning('Incorrect date from UART: {}'.format(e))
+
+    return status

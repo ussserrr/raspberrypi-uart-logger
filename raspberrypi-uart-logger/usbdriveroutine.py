@@ -1,29 +1,25 @@
 """
-Module that generally controls operations with the drive. Almost all print()
-statements in this and another modules is just for debug purposes because on the
-end device there will be no sense in them (but you can try to transfer them on
-the logging platform if you sure that the drive is in a presence at the moment
-of a logging event).
+Module that generally controls operations with the drive. Almost all print() statements in this and another modules is
+just for debug purposes because on the end device there will be no sense in them (but you can try to transfer them on
+the logging platform if you sure that the drive is in a presence at the moment of a logging event).
 """
 
 import os, shutil, subprocess, time, logging
 from termcolor import cprint
-from miscs import *
+from util import *
 
 
 
 class CustomFileHandler(logging.FileHandler):
     """
-    Subclass of logging.FileHandler with the overridden flush() method and a
-    couple new properties. The main idea is to have and control a single "exit"
-    of logging data into the output file.
+    Subclass of logging.FileHandler with the overridden flush() method and a couple new properties. The main idea is to
+    have and control a single "exit" of logging data into the output file.
     """
 
     def __init__(self, drive_arg, filename):
         # We need to know the current drive (/dev/sdXN) to check its presence
         self.drive = drive_arg
-        # This flag is used to stop flushes when the drive is no more plugged
-        # and shutdown routines are performed
+        # This flag is used to stop flushes when the drive is no more plugged and shutdown routines are performed
         self.active = True
         # Initialize a superclass in a usual way
         super(CustomFileHandler, self).__init__(filename)
@@ -34,8 +30,8 @@ class CustomFileHandler(logging.FileHandler):
         when FileHadler is connected to the current Logger.
         """
         if self.active:
-            # Linux with its buffering mechanism doesn't immediately detect
-            # drive ejects so we need to perform manual checks
+            # Linux with its buffering mechanism doesn't immediately detect drive ejects so we need to perform manual
+            # checks
             if not os.path.exists(self.drive):
                 print('Drive has been lost')
                 self.active = False
@@ -51,8 +47,7 @@ class CustomFileHandler(logging.FileHandler):
 
 def unmount_drive(drive):
     cprint('UNMOUNT THE DRIVE', 'red')
-    rslt = subprocess.run(['sudo', 'umount', drive], stdout=subprocess.PIPE,
-                                                     stderr=subprocess.PIPE)
+    rslt = subprocess.run(['sudo', 'umount', drive], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # Suppress command output while there is no error
     if rslt.returncode != 0:
         print(rslt.stderr.decode('utf-8'))
@@ -66,12 +61,9 @@ def mount_drive(drive, drive_mountpoint, drive_name):
         os.mkdir(os.path.join(drive_mountpoint, drive_name))
     except:
         pass
-    rslt = subprocess.run([
-            'sudo', 'mount', '-t', 'vfat', '-ouser,umask=0000',
-            drive, '{}/{}'.format(drive_mountpoint, drive_name)
-        ],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
+    rslt = subprocess.run(['sudo', 'mount', '-t', 'vfat', '-ouser,umask=0000', drive,
+                           '{}/{}'.format(drive_mountpoint, drive_name)],
+                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # Suppress command output while there is no error
     if rslt.returncode != 0:
         print(rslt.stderr.decode('utf-8'))
@@ -80,8 +72,7 @@ def mount_drive(drive, drive_mountpoint, drive_name):
 
 def check_drive(possible_drives, drive_mountpoint, drive_name, log_filename):
     """
-    Full check: drive existence/name, log file existence/name, ability to write,
-    so on
+    Full check: drive existence/name, log file existence/name, ability to write, so on
 
     returns:
         result,drive
@@ -141,8 +132,7 @@ def check_drive(possible_drives, drive_mountpoint, drive_name, log_filename):
 
 
     # Look for an already existed logfile on the drive
-    if os.path.exists('{}/{}/{}'
-                      .format(drive_mountpoint, drive_name, log_filename)):
+    if os.path.exists('{}/{}/{}'.format(drive_mountpoint, drive_name, log_filename)):
         print('{} is here'.format(log_filename))
     else:
         print('No log file, format...')
@@ -151,8 +141,7 @@ def check_drive(possible_drives, drive_mountpoint, drive_name, log_filename):
     # First check for a logfile corruption (trying to get file properties)
     stat_info = 0
     try:
-        stat_info = os.stat('{}/{}/{}'
-                            .format(drive_mountpoint, drive_name, log_filename))
+        stat_info = os.stat('{}/{}/{}'.format(drive_mountpoint, drive_name, log_filename))
     except Exception as e:
         print(e, ', format...')
         return NEED_FORMAT,drive
@@ -169,8 +158,7 @@ def check_drive(possible_drives, drive_mountpoint, drive_name, log_filename):
 
     # Second check for logfile corruption (trying to open the file for writing)
     try:
-        log = open('{}/{}/{}'
-                   .format(drive_mountpoint, drive_name, log_filename), 'r+')
+        log = open('{}/{}/{}'.format(drive_mountpoint, drive_name, log_filename), 'r+')
         log.close()
     except Exception as e:
         print(e, ', format...')
@@ -196,12 +184,8 @@ def replace_drive(possible_drives):
         for drv in possible_drives:
             if os.path.exists('/dev/{}'.format(drv)):
                 drive = '/dev/{}'.format(drv)
-                print(
-                    "We've waited for a new drive {} for approximately {} seconds"
-                    .format(
-                        drive,
-                        wait_for_drive_time + wait_for_drive_cnt * wait_for_drive_time
-                    ))
+                print("We've waited for a new drive {} for approximately {} seconds"
+                      .format(drive, wait_for_drive_time + wait_for_drive_cnt * wait_for_drive_time))
                 time.sleep(wait_for_drive_time)
                 return STATUS_OK
         print('Drive was not found yet')
@@ -221,12 +205,10 @@ def format_drive(drive, drive_name):
 
 
 
-def activate_drive_and_logger(possible_drives, drive_mountpoint, drive_name,
-                              logger, formatter, log_filename):
+def activate_drive_and_logger(possible_drives, drive_mountpoint, drive_name, logger, formatter, log_filename):
     """
-    Wrapper for check_driver() function with an extended functionality. Important
-    thing is that this function also creates and returns a new CustomFileHandler
-    instance. The current guide is to let the caller decide what to do in
+    Wrapper for check_driver() function with an extended functionality. Important thing is that this function also
+    creates and returns a new CustomFileHandler instance. The current guide is to let the caller decide what to do in
     different cases instead of performing reboots "on the spot".
 
     returns:
@@ -236,8 +218,7 @@ def activate_drive_and_logger(possible_drives, drive_mountpoint, drive_name,
     activation_tries_cnt = activation_tries
     while True:
 
-        drive_check_rslt,drive = check_drive(possible_drives, drive_mountpoint,
-                                             drive_name, log_filename)
+        drive_check_rslt,drive = check_drive(possible_drives, drive_mountpoint, drive_name, log_filename)
         if drive_check_rslt == NEED_FORMAT:
             print('Drive is need to be formatted')
             unmount_drive(drive)
@@ -251,8 +232,8 @@ def activate_drive_and_logger(possible_drives, drive_mountpoint, drive_name,
 
         # Try to perform a test log writing
         try:
-            logging_file_handler = CustomFileHandler(drive,
-                '{}/{}/{}'.format(drive_mountpoint, drive_name, log_filename))
+            logging_file_handler = CustomFileHandler(drive, '{}/{}/{}'.format(drive_mountpoint, drive_name,
+                                                                              log_filename))
             logging_file_handler.setLevel(logging.DEBUG)
             logging_file_handler.setFormatter(formatter)
             logger.addHandler(logging_file_handler)
@@ -264,8 +245,7 @@ def activate_drive_and_logger(possible_drives, drive_mountpoint, drive_name,
             if activation_tries_cnt == 0:
                 print('¯\_(ツ)_/¯ sudo reboot')
                 return CRITICAL_ERROR,None,''
-            print("Can't logging on drive. Retry after {} seconds"
-                  .format(activation_tries_time))
+            print("Can't logging on drive. Retry after {} seconds".format(activation_tries_time))
             time.sleep(activation_tries_time)
         else:
             print('Logging activation success')

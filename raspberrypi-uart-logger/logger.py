@@ -1,4 +1,3 @@
-# TODO: in production: remove all print and cprint statements
 # TODO: respond on errors of subprocess.run() (use subprocess.run(..., check=True))
 # TODO: USB drive overflow/fat32 maximal file size (4 Gb) exceed
 
@@ -10,7 +9,7 @@ import sys, time, signal, serial, logging, subprocess, datetime
 import RPi.GPIO as GPIO
 from functools import partial
 
-from miscs import *
+from util import *
 from usbdriveroutine import *
 from bcd import *
 
@@ -18,10 +17,9 @@ from bcd import *
 
 def usart_connect(logger, ser):
     """
-    Routine that perform several tries to connect to the serial port (UART).
-    Usually on Raspberry the connection is established at the first attempt
-    because of the permanently existing port. So this function just adds one
-    more safety level and an ability to migrate the code to another platform.
+    Routine that perform several tries to connect to the serial port (UART). Usually on Raspberry the connection is
+    established at the first attempt because of the permanently existing port. So this function just adds one more
+    safety level and an ability to migrate the code to another platform.
 
     returns:
         result,reconnect_counter
@@ -34,14 +32,11 @@ def usart_connect(logger, ser):
             usart_reconnect_counter += 1
             if usart_reconnect_counter > usart_reconnect_tries:
                 return CRITICAL_ERROR,usart_reconnect_counter+1
-            logger.error("{}. Reconnect after {} seconds, {} tries left".format(
-                            e,
-                            usart_reconnect_retry_time,
-                            usart_reconnect_tries - usart_reconnect_counter
-                         ))
+            logger.error("{}. Reconnect after {} seconds, {} tries left"
+                         .format(e, usart_reconnect_retry_time, usart_reconnect_tries - usart_reconnect_counter))
             time.sleep(usart_reconnect_retry_time)
         else:
-            logger.info("Host now listening to {} (established in {} tries)"
+            logger.info("Host is now listening to {} (established in {} tries)"
                         .format(ser.name, usart_reconnect_counter+1))
 
     return 0,usart_reconnect_counter+1
@@ -50,8 +45,7 @@ def usart_connect(logger, ser):
 
 def main():
     """
-    Main function is not an actual start point of the whole program because of
-    routines in imported modules.
+    Main function is not an actual start point of the whole program because of routines in imported modules.
     """
 
     GPIO.setmode(GPIO.BCM)
@@ -62,19 +56,11 @@ def main():
     signal.signal(signal.SIGINT, ctrlc_handler)
     signal.signal(signal.SIGTERM, ctrlc_handler)
 
-    # Many of such functions in the program does not actually use all these
-    # arguments and return values as part of the isolation principle. The idea
-    # is to make it easier to upgrade the code in future releases.
+    # Many of such functions in the program does not actually use all these arguments and return values as part of the
+    # isolation principle. The idea is to make it easier to upgrade the code in future releases.
     activate_drive_and_logger_status,\
     logging_file_handler,\
-    drive = activate_drive_and_logger(
-        possible_drives,
-        drive_mountpoint,
-        drive_name,
-        logger,
-        formatter,
-        log_filename
-    )
+    drive = activate_drive_and_logger(possible_drives, drive_mountpoint, drive_name, logger, formatter, log_filename)
     if activate_drive_and_logger_status == CRITICAL_ERROR:
         sudo_reboot()
 
@@ -109,36 +95,26 @@ def main():
                 char = ser.read(1)  # 1 byte
             # Rear or non-present exception on Raspberry
             except Exception as e:
-                logger.error("{}. His last words were (raw): {}"
-                             .format(e, "''" if msg=='' else msg))
+                logger.error("{}. His last words were (raw): {}".format(e, msg))
                 msg = ''
             else:
-                # Send symbol back to see what we typing (for debugging)
+                # Send a symbol back to see what we typing (when debugging)
                 # ser.write(char)
 
-                # read byte timeout expired
+                # reading timeout expired
                 if char == b'':
                     no_ping_counter += 1
                     if no_ping_counter > no_ping_tries:
                         sudo_reboot()
 
-                    # Define whether disconnection has happened in "idle" mode
-                    # (between two messages) or while transfer
+                    # Define whether disconnection has happened in "idle" mode (between two messages)
+                    # or during the transfer
                     if msg == '':
-                        logger.error(
-                            "Target is not present. Wait for {} seconds, {} tries left"
-                            .format(
-                                ser.timeout,
-                                no_ping_tries - no_ping_counter
-                            ))
+                        logger.error("Target is not present. Wait for {} seconds, {} tries left"
+                                     .format(ser.timeout, no_ping_tries - no_ping_counter))
                     else:
-                        logger.error(
-                            "Transmission failed. His last words were (raw): {}. "
-                            "New waiting timeout: {} seconds"
-                            .format(
-                                "''" if msg=='' else msg,
-                                ser.timeout
-                            ))
+                        logger.error("Transmission failed. His last words were (raw): {}. "
+                                     "New waiting timeout: {} seconds".format(msg, ser.timeout))
                         msg = ''
 
                     # Go and wait again
@@ -156,9 +132,8 @@ def main():
                     msg = ''
                     no_ping_counter = 0
 
-                # Append a symbol to the message and catch decode exceptions.
-                # They usually appears due to transmit errors (bad electrical
-                # contact, for example).
+                # Append a symbol to the message and catch decode exceptions. They usually appears due to transmit
+                # errors (bad electrical contact, for example).
                 try:
                     msg = msg + char.decode('utf-8')
                 except Exception as e:
@@ -187,31 +162,21 @@ def main():
                 logger.critical(msg_for_log)
 
         else:
-            # Ping-like message transmitted for us by the target to be sure that
-            # it is alive
-            elif msg == 'is_present':
-                # We have dedicated resets counter in file. But we need to reset it
-                # sometimes, right? We do it only once per program run, at condition
-                # of a successful transmission.
+            # Ping-like message transmitted for us by the target to be sure that it is alive
+            if msg == 'is_present':
+                # We have dedicated resets counter in file. But we need to reset it sometimes, right? We do it only
+                # once per program run, at condition of a successful transmission.
                 if not reset_reboots_cnt_flag:
-                    # Cancel reboot, if there was planned one
+                    # Cancel reboot, if there was a planned one
                     subprocess.run(['sudo', 'shutdown', '-c'])
                     reset_reboots_cnt()
                     reset_reboots_cnt_flag = True
                     print('Reboots counter was cleared')
 
             elif msg.startswith('time sync'):
-                # Sync from UART only if we didn't it during the start-up process
+                # Sync from UART only if we didn't do it during the start-up process
                 if time_sync_status != STATUS_OK:
-                    time = ...
-                    rslt = subprocess.run('sudo date -s "$(date +%Y-%m-%d) {hour}:{minute}:{second}"'
-                                          .format(hour=, minute=, second=), shell=True)
-                    if rslt.returncode == 0:
-                        print("Time was set from UART")
-                        logger.info("Time was set from UART")
-                    else:
-                        print("Error occured when setting time from UART")
-                        logger.error("Error occured when setting time from UART")
+                    set_time_from_msg(msg)
                 else:
                     print("Ignore time from UART")
                     logger.info("Ignore time from UART")
@@ -219,15 +184,7 @@ def main():
             elif msg.startswith('date sync'):
                 # Sync from UART only if we didn't it during the start-up process
                 if time_sync_status != STATUS_OK:
-                    date = ...
-                    rslt = subprocess.run('sudo date -s "{year}-{month}-{day} $(date +%H:%M:%S)"'
-                                          .format(year=, month=, day=), shell=True)
-                    if rslt.returncode == 0:
-                        print("Date was set from UART")
-                        logger.info("Date was set from UART")
-                    else:
-                        print("Error occured when setting date from UART")
-                        logger.error("Error occured when setting date from UART")
+                    set_date_from_msg(msg)
                 else:
                     print("Ignore time from UART")
                     logger.info("Ignore date from UART")
@@ -247,9 +204,8 @@ def main():
 
 
 """
-This construction allows to have separate program configurations and runs them
-independentely. For example, we can write test() which has similar environment but
-different functionality compared to main(), and run it instead of main().
+This construction allows to have separate program configurations and runs them independentely. For example, we can
+write test() which has similar environment but different functionality compared to main(), and run it instead of main().
 """
 if __name__ == '__main__':
     main()
