@@ -6,12 +6,13 @@
 Main program module.
 """
 
-import sys, time, signal, serial, logging, subprocess
+import sys, time, signal, serial, logging, subprocess, datetime
 import RPi.GPIO as GPIO
 from functools import partial
 
 from miscs import *
 from usbdriveroutine import *
+from bcd import *
 
 
 
@@ -77,11 +78,23 @@ def main():
     if activate_drive_and_logger_status == CRITICAL_ERROR:
         sudo_reboot()
 
-    sync_system_time()
+    time_sync_status = sync_system_time()
 
     usart_connect_status, usart_reconnect_counter = usart_connect(logger, ser)
     if usart_connect_status == CRITICAL_ERROR:
         sudo_reboot()
+    else:
+        if time_sync_status == STATUS_OK:
+            # send date and time
+            now = datetime.datetime.today()
+            ser.write(int_to_bcd_bytes(now.year))
+            ser.write(int_to_bcd_bytes(now.month))
+            ser.write(int_to_bcd_bytes(now.day))
+            ser.write(int_to_bcd_bytes(now.hour))
+            ser.write(int_to_bcd_bytes(now.minute))
+            ser.write(int_to_bcd_bytes(now.second))
+            logger.info("Time and date were sent over UART")
+
 
     no_ping_counter = 0
     reset_reboots_cnt_flag = False
@@ -159,40 +172,66 @@ def main():
                     sudo_reboot()
 
 
-        # Parse type of a log message and store it
-        type = msg[0]; msg_for_log = msg[2:]
-        if type == 'D':
-            logger.debug(msg_for_log)
-        elif type == 'I':
-            logger.info(msg_for_log)
-        elif type == 'W':
-            logger.warning(msg_for_log)
-        elif type == 'E':
-            logger.error(msg_for_log)
-        elif type == 'C':
-            logger.critical(msg_for_log)
+        if msg[0] in ['D', 'I', 'W', 'E', 'C'] and msg[1] == ' ':
+            # Parse type of a log message and store it
+            msg_type = msg[0]; msg_for_log = msg[2:]
+            if msg_type == 'D':
+                logger.debug(msg_for_log)
+            elif msg_type == 'I':
+                logger.info(msg_for_log)
+            elif msg_type == 'W':
+                logger.warning(msg_for_log)
+            elif msg_type == 'E':
+                logger.error(msg_for_log)
+            elif msg_type == 'C':
+                logger.critical(msg_for_log)
 
-        # Ping-like message transmitted for us by the target to be sure that
-        # it is alive
-        elif msg == 'is_present':
-            # We have dedicated resets counter in file. But we need to reset it
-            # sometimes, right? We do it only once per program run, at condition
-            # of a successful transmission.
-            if not reset_reboots_cnt_flag:
-                # Cancel reboot, if there was planned one
-                subprocess.run(['sudo', 'shutdown', '-c'])
-                reset_reboots_cnt()
-                reset_reboots_cnt_flag = True
-                print('Reboots counter was cleared')
-
-        elif msg == 'end':
-            logger.info("Program terminated by the target")
-            program_exit()
-            sys.exit()
-
-        # If a message isn't of any recognizable type
         else:
-            logger.warning("Undefined message: {}".format(repr(msg)))
+            # Ping-like message transmitted for us by the target to be sure that
+            # it is alive
+            elif msg == 'is_present':
+                # We have dedicated resets counter in file. But we need to reset it
+                # sometimes, right? We do it only once per program run, at condition
+                # of a successful transmission.
+                if not reset_reboots_cnt_flag:
+                    # Cancel reboot, if there was planned one
+                    subprocess.run(['sudo', 'shutdown', '-c'])
+                    reset_reboots_cnt()
+                    reset_reboots_cnt_flag = True
+                    print('Reboots counter was cleared')
+
+            elif msg.startswith('time sync'):
+                time = ...
+                rslt = subprocess.run(['sudo', 'date', '-s',
+                    '"$(date \%Y-\%m-\%d) {hour}:{minute}:{second}"'
+                    .format(hour=, minute=, second=)])
+                if rslt.returncode == 0:
+                    print("Time was set from UART")
+                    logger.info("Time was set from UART")
+                else:
+                    print("Error occured when setting time from UART")
+                    logger.error("Error occured when setting time from UART")
+
+            elif msg.startswith('date sync'):
+                date = ...
+                rslt = subprocess.run(['sudo', 'date', '-s',
+                    '"{year}-{month}-{day} $(date +\%H:\%M:\%S)"'
+                    .format(year=, month=, day=)])
+                if rslt.returncode == 0:
+                    print("Date was set from UART")
+                    logger.info("Date was set from UART")
+                else:
+                    print("Error occured when setting date from UART")
+                    logger.error("Error occured when setting date from UART")
+
+            elif msg == 'end':
+                logger.info("Program terminated by the target")
+                program_exit()
+                sys.exit()
+
+            # If a message isn't of any recognizable type
+            else:
+                logger.warning("Undefined message: {}".format(repr(msg)))
 
         # Force flush after every message for certainty
         logging_file_handler.flush()

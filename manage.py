@@ -7,8 +7,10 @@ here = os.path.abspath(os.path.dirname(__file__))
 package_name = 'raspberrypi-uart-logger'
 service_name = 'logger.service'
 mountpoint = '/mnt/LOGS'
-installation_files = [ 'logger.py',
+installation_files = [ '__init__.py',
+                       'logger.py',
                        'miscs.py',
+                       'bcd.py',
                        'startup_script.sh',
                        'usbdriveroutine.py' ]
 dependencies = [ 'python3-termcolor',
@@ -49,8 +51,8 @@ subparsers = parser.add_subparsers(dest='subcommand', title='subcommands',
 parser_install = subparsers.add_parser('install',
     help="Install dependencies, copy necessary files, register in the system. "
          "After installation the program will be located in "
-         "'/opt/raspberrypi-uart-logger' directory. Current installation will be "
-         "overridden. Reboot is needed to take effects.")
+         "'/opt/{}' directory. Current installation will be "
+         "overridden. Reboot is needed to take effects.".format(package_name))
 parser_generate = subparsers.add_parser('uninstall',
     help="Remove all files, registrations. Note that all dependencies will still "
          "be there and some system configs will not be revert back")

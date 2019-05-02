@@ -168,7 +168,7 @@ def sync_system_time():
                       .format(server))
                 logger.info("System clock has been synchronized with {} server"
                             .format(server))
-                return
+                return STATUS_OK
         time_sync_tries_cnt -= 1
         print("Cannot sync the system clock, retry after {} seconds..."
               .format(time_sync_retry_time))
@@ -176,3 +176,4 @@ def sync_system_time():
 
     print("Cannot sync the system clock")
     logger.warning("Cannot sync the system clock")
+    return not STATUS_OK
